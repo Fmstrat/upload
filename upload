@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+
+function usage() {
+    echo '
+
+An auto-uploader via SSH to a web URL for Linux, OSX, and WSL.
+
+Setup
+=====
+export UPLOAD_SSH="server:/path"             # The SSH server/path from '~/.ssh/config' to upload to
+export UPLOAD_WEB="https://server.com/path"  # The web host where the files will be found
+export UPLOAD_FOLDER="/path"                 # The local path to use for 'upload latest'
+
+Options
+=======
+  -l        | --latest       # Upload the latest file in the UPLOAD_FOLDER directory
+  -f <file> | --file <file>  # Upload a specific file
+  -s        | --shell        # Open a shell on the SSH server in the upload folder for cleanup
+  -m <#>    | --minutes <#>  # Optional: Specify the number of minutes before the file is deleted from the server
+  -y        | --yes          # Optional: Automatically answer Yes to the confirmation question
+  -c        | --clipboard    # Optional: Copy the resulting URL to the clipboard'
+    exit 0
+}
+
+function urlencode() {
+    # urlencode <string>
+    old_lc_collate=$LC_COLLATE
+    LC_COLLATE=C
+    local length="${#1}"
+    for (( i = 0; i < length; i++ )); do
+        local c="${1:i:1}"
+        case $c in
+            [a-zA-Z0-9.~_-]) printf "$c" ;;
+            *) printf '%%%02X' "'$c" ;;
+        esac
+    done
+    LC_COLLATE=$old_lc_collate
+}
+
+if [ -n "${UPLOAD_SSH}" ]; then
+    SSH_SERVER="${UPLOAD_SSH%%:*}"
+    SSH_FOLDER="${UPLOAD_SSH#*:}"
+else
+    echo "ERROR: Missing UPLOAD_SSH env variable."
+    usage;
+fi
+if [ -z "${UPLOAD_WEB}" ]; then
+    echo "ERROR: Missing UPLOAD_WEB env variable."
+    usage;
+fi
+if [ -z "${UPLOAD_FOLDER}" ]; then
+    echo "ERROR: Missing UPLOAD_FOLDER env variable."
+    usage;
+fi
+
+if [[ "${SSH_FOLDER}" != */ ]]; then
+    SSH_FOLDER="${SSH_FOLDER}/"
+fi
+if [[ "${UPLOAD_WEB}" != */ ]]; then
+    UPLOAD_WEB="${UPLOAD_WEB}/"
+fi
+
+OS=Linux
+if [ -n "$(uname -a |grep Microsoft)" ]; then
+        OS=Microsoft
+elif [ -n "$(uname -a |grep Darwin)" ]; then
+        OS=Darwin
+fi
+
+if [ -z "$(which xclip)" ] && [ "${OS}" = "Linux" ]; then
+    echo "Installing xclip dependency"
+    sudo apt-get install -y xclip
+fi
+
+COUNT=0
+# Parse the command line
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case $key in
+		-f|--file)
+		export FILE="$2"
+		shift # past argument
+		shift # past value
+		;;
+		-m|--minutes)
+		export MINUTES="$2"
+		shift # past argument
+		shift # past value
+		;;
+		-y|--yes)
+		export YES=y
+		shift # past argument
+		;;
+		-c|--clipboard)
+		export CLIPBOARD=1
+		shift # past argument
+		;;
+		-s|--shell)
+		export SSHSHELL=1
+		shift # past argument
+		;;
+		-l|--latest)
+		export LATEST=1
+		shift # past argument
+		;;
+	esac
+	if [ $((COUNTER++)) -eq 20 ]; then
+		exit
+	fi
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+if { [ -n "${FILE}" ] && [ -n "${LATEST}" ]; } ||
+   { [ -n "${FILE}" ] && [ -n "${SSHSHELL}" ]; } ||
+   { [ -n "${LATEST}" ] && [ -n "${SSHSHELL}" ]; } ||
+   { [ -z "${LATEST}" ] && [ -z "${SSHSHELL}" ] && [ -z "${FILE}" ]; }; then
+    echo "ERROR: You must include one and only one of -f, -l, or -s."
+    usage;
+fi
+
+if [ -n "${SSHSHELL}" ]; then
+    ssh -t ${SSH_SERVER} "cd '${SSH_FOLDER}'; bash"
+    exit 0;
+fi
+
+if [ -n "${LATEST}" ]; then
+    FILE=$(find "${UPLOAD_FOLDER}" -type f -printf '%T+ %p\n' | sort -r | head -n1)
+    FILE=${FILE#* }
+fi
+if [ -z "${YES}" ]; then
+    echo -n "Upload '${FILE}'? (y/N): "
+    read YES
+fi
+if [ "${YES}" != "y" ]; then
+    exit 0;
+fi
+FILENAME=$(basename "${FILE}")
+#SRC="${FILE//\ /\\\ }"
+DST="${SSH_FOLDER}${FILENAME}"
+DST="${DST//\ /\\\ }"
+scp "${FILE}" ${SSH_SERVER}:"${DST}"
+if [ -n "${MINUTES}" ]; then
+    SECONDS=$(( MINUTES*60 ))
+    ssh ${SSH_SERVER} "( sleep ${SECONDS}; rm -f '${SSH_FOLDER}${FILENAME}' ) >/dev/null 2>/dev/null &" 
+    echo "Setting ${FILENAME} to delete in ${MINUTES} minutes."
+fi
+URL="${UPLOAD_WEB}$(urlencode "${FILENAME}")"
+if [ -n "${CLIPBOARD}" ]; then
+    if [ "${OS}" = "Linux" ]; then
+        echo "${URL}" | xclip -selection clipboard
+    elif [ "${OS}" = "Darwin" ]; then
+        echo "${URL}" | pbcopy
+    else
+        echo "${URL}" | clip.exe
+    fi
+    echo "Copied to clipboard."
+fi
+echo "URL: ${UPLOAD_WEB}$(urlencode "${FILENAME}")"
