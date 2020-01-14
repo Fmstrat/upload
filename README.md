@@ -40,6 +40,9 @@ Setting Screenshot from 2019-03-27 12-22-41.png to delete in 1 minutes.
 Copied to clipboard.
 URL: https://mysite.com/p/Screenshot%20from%202019-03-27%2012-22-41.png
 user@host:~$ 
+user@host:~$ UPLOAD_FOLDER=$HOME/Downloads upload -l
+Upload '/home/user/Downloads/movie.jpg'? (y/N): n
+user@host:~$ 
 user@host:~$ upload -s
 root@linode:/var/www/html/p# ls
 merged.png  Screenshot from 2019-03-27 12-22-41.png
