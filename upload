@@ -148,11 +148,11 @@ fi
 URL="${UPLOAD_WEB}$(urlencode "${FILENAME}")"
 if [ -n "${CLIPBOARD}" ]; then
     if [ "${OS}" = "Linux" ]; then
-        echo "${URL}" | xclip -selection clipboard
+        echo -n "${URL}" | xclip -selection clipboard
     elif [ "${OS}" = "Darwin" ]; then
-        echo "${URL}" | pbcopy
+        echo -n "${URL}" | pbcopy
     else
-        echo "${URL}" | clip.exe
+        echo -n "${URL}" | clip.exe
     fi
     echo "Copied to clipboard."
 fi
