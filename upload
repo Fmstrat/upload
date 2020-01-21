@@ -13,14 +13,13 @@ export UPLOAD_FOLDER="/path"                 # The local path to use for 'upload
 
 Options
 =======
-  -l        | --latest           # Upload the latest file in the UPLOAD_FOLDER directory
-  -f <file> | --file <file>      # Upload a specific file
-  -s        | --shell            # Open a shell on the SSH server in the upload folder for cleanup
-  -m <#>    | --minutes <#>      # Optional: Specify the number of minutes before the file is deleted from the server
-  -y        | --yes              # Optional: Automatically answer Yes to the confirmation question
-  -c        | --clipboard        # Optional: Copy the resulting URL to the clipboard
-  -i        | --ignore-dot-files # Optional: Ignore files starting with "." when using --latest
-'
+  -l        | --latest         # Upload the latest file in the UPLOAD_FOLDER directory
+  -f <file> | --file <file>    # Upload a specific file
+  -s        | --shell          # Open a shell on the SSH server in the upload folder for cleanup
+  -m <#>    | --minutes <#>    # Optional: Specify the number of minutes before the file is deleted from the server
+  -y        | --yes            # Optional: Automatically answer Yes to the confirmation question
+  -c        | --clipboard      # Optional: Copy the resulting URL to the clipboard
+  -i        | --ignore-hidden  # Optional: Ignore hidden files when using --latest (files beginning with ".")'
     exit 0
 }
 
