@@ -48,3 +48,10 @@ root@linode:/var/www/html/p# ls
 merged.png  Screenshot from 2019-03-27 12-22-41.png
 root@linode:/var/www/html/p#
 ```
+
+## Nautilus scripts
+You can copy the files from `nautilus/scripts` into your `~/.local/share/nautilus/scripts` folder to use the upload functionality as a right click option in the system.
+
+However, you must edit the scripts to call the `export` commands above, and the path for `upload`.
+
+![Nautilus](screens/nautilus.png)
