@@ -7,7 +7,7 @@ for FILE in ${NAUTILUS_SCRIPT_SELECTED_URIS}; do
 	FILE=${FILE#file://}
 	gnome-terminal -- bash -c "
 	. /path/to/exports.sh
-	/path/to/upload -y -c -f \"${FILE}\" -m 60
+	/path/to/upload -y -c -f \"${FILE}\" -m 10 -h
 	echo -n \"Press enter to continue...\"
 	read
 	"

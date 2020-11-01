@@ -18,6 +18,7 @@ Options
   -m <#>    | --minutes <#>  # Optional: Specify the number of minutes before the file is deleted from the server
   -y        | --yes          # Optional: Automatically answer Yes to the confirmation question
   -c        | --clipboard    # Optional: Copy the resulting URL to the clipboard
+  -h        | --hidden       # Optional: Place in a random subfolder (https://server.com/path/ATg1O352CaiAY0xTGnlv0DtCf03VRpV6/filename.ext)
 ```
 
 ## Example
