@@ -18,6 +18,7 @@ Options
   -m <#>    | --minutes <#>  # Optional: Specify the number of minutes before the file is deleted from the server
   -y        | --yes          # Optional: Automatically answer Yes to the confirmation question
   -c        | --clipboard    # Optional: Copy the resulting URL to the clipboard
+  -h        | --hidden       # Optional: Place in a random subfolder (https://server.com/path/ATg1O352CaiAY0xTGnlv0DtCf03VRpV6/filename.ext)
 ```
 
 ## Example
@@ -48,3 +49,10 @@ root@linode:/var/www/html/p# ls
 merged.png  Screenshot from 2019-03-27 12-22-41.png
 root@linode:/var/www/html/p#
 ```
+
+## Nautilus scripts
+You can copy the files from `nautilus/scripts` into your `~/.local/share/nautilus/scripts` folder to use the upload functionality as a right click option in the system.
+
+However, you must edit the scripts to call the `export` commands above, and the path for `upload`.
+
+![Nautilus](screens/nautilus.png)

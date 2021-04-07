@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+
+for FILE in ${NAUTILUS_SCRIPT_SELECTED_URIS}; do
+	FILE=$(urldecode ${FILE})
+	FILE=${FILE#file://}
+	gnome-terminal -- bash -c "
+	. /path/to/exports.sh
+	/path/to/upload -y -c -f \"${FILE}\"
+	echo -n \"Press enter to continue...\"
+	read
+	"
+done
+

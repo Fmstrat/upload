@@ -20,6 +20,7 @@ Options
   -y        | --yes            # Optional: Automatically answer Yes to the confirmation question
   -c        | --clipboard      # Optional: Copy the resulting URL to the clipboard
   -i        | --ignore-hidden  # Optional: Ignore hidden files when using --latest (files beginning with ".")'
+  -h        | --hidden       # Optional: Place in a random subfolder (https://server.com/path/ATg1O352CaiAY0xTGnlv0DtCf03VRpV6/filename.ext)'
     exit 0
 }
 
@@ -107,6 +108,8 @@ while [[ $# -gt 0 ]]; do
 		;;
 		-i|--ignore-hidden)
 		export IGNORE_HIDDEN=1
+		-h|--hidden)
+		export UUID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)/
 		shift # past argument
 		;;
 	esac
@@ -144,14 +147,21 @@ fi
 if [ "${YES}" != "y" ]; then
     exit 0;
 fi
+if [ -n "${UUID}" ]; then
+    ssh ${SSH_SERVER} "mkdir -p \"${SSH_FOLDER}${UUID}\""
+fi
 FILENAME=$(basename "${FILE}")
 #SRC="${FILE//\ /\\\ }"
-DST="${SSH_FOLDER}${FILENAME}"
+DST="${SSH_FOLDER}${UUID}${FILENAME}"
 DST="${DST//\ /\\\ }"
 scp "${FILE}" ${SSH_SERVER}:"${DST}"
 if [ -n "${MINUTES}" ]; then
     SECONDS=$(( MINUTES*60 ))
-    ssh ${SSH_SERVER} "( sleep ${SECONDS}; rm -f '${SSH_FOLDER}${FILENAME}' ) >/dev/null 2>/dev/null &" 
+    if [ -n "${UUID}" ]; then
+        ssh ${SSH_SERVER} "( sleep ${SECONDS}; rm -f '${SSH_FOLDER}${UUID}${FILENAME}'; rmdir '${SSH_FOLDER}${UUID}' ) >/dev/null 2>/dev/null &" 
+    else
+        ssh ${SSH_SERVER} "( sleep ${SECONDS}; rm -f '${SSH_FOLDER}${UUID}${FILENAME}' ) >/dev/null 2>/dev/null &" 
+    fi
     echo "Setting ${FILENAME} to delete in ${MINUTES} minutes."
 fi
 URL="${UPLOAD_WEB}$(urlencode "${FILENAME}")"
@@ -165,4 +175,4 @@ if [ -n "${CLIPBOARD}" ]; then
     fi
     echo "Copied to clipboard."
 fi
-echo "URL: ${UPLOAD_WEB}$(urlencode "${FILENAME}")"
+echo "URL: ${UPLOAD_WEB}${UUID}$(urlencode "${FILENAME}")"
