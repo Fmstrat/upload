@@ -108,6 +108,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 		-i|--ignore-hidden)
 		export IGNORE_HIDDEN=1
+		shift # past argument
 		-h|--hidden)
 		export UUID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)/
 		shift # past argument
@@ -133,10 +134,10 @@ if [ -n "${SSHSHELL}" ]; then
 fi
 
 if [ -n "${LATEST}" ]; then
-	MATCH=""
-	if [ -n "${IGNORE_HIDDEN}" ]; then
-		MATCH='.*/\..*'
-	fi
+    MATCH=""
+    if [ -n "${IGNORE_HIDDEN}" ]; then
+	MATCH='.*/\..*'
+    fi
     FILE=$(find "${UPLOAD_FOLDER}" \( ! -regex "$MATCH" \) -type f -printf '%T+ %p\n' | sort -r | head -n1)
     FILE=${FILE#* }
 fi
