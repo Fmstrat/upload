@@ -157,7 +157,7 @@ if [ -n "${MINUTES}" ]; then
     fi
     echo "Setting ${FILENAME} to delete in ${MINUTES} minutes."
 fi
-URL="${UPLOAD_WEB}$(urlencode "${FILENAME}")"
+URL="${UPLOAD_WEB}${UUID}$(urlencode "${FILENAME}")"
 if [ -n "${CLIPBOARD}" ]; then
     if [ "${OS}" = "Linux" ]; then
         echo -n "${URL}" | xclip -selection clipboard
