@@ -13,12 +13,13 @@ export UPLOAD_FOLDER="/path"                 # The local path to use for 'upload
 
 Options
 =======
-  -l        | --latest       # Upload the latest file in the UPLOAD_FOLDER directory
-  -f <file> | --file <file>  # Upload a specific file
-  -s        | --shell        # Open a shell on the SSH server in the upload folder for cleanup
-  -m <#>    | --minutes <#>  # Optional: Specify the number of minutes before the file is deleted from the server
-  -y        | --yes          # Optional: Automatically answer Yes to the confirmation question
-  -c        | --clipboard    # Optional: Copy the resulting URL to the clipboard
+  -l        | --latest         # Upload the latest file in the UPLOAD_FOLDER directory
+  -f <file> | --file <file>    # Upload a specific file
+  -s        | --shell          # Open a shell on the SSH server in the upload folder for cleanup
+  -m <#>    | --minutes <#>    # Optional: Specify the number of minutes before the file is deleted from the server
+  -y        | --yes            # Optional: Automatically answer Yes to the confirmation question
+  -c        | --clipboard      # Optional: Copy the resulting URL to the clipboard
+  -i        | --ignore-hidden  # Optional: Ignore hidden files when using --latest (files beginning with ".")'
   -h        | --hidden       # Optional: Place in a random subfolder (https://server.com/path/ATg1O352CaiAY0xTGnlv0DtCf03VRpV6/filename.ext)'
     exit 0
 }
@@ -105,6 +106,9 @@ while [[ $# -gt 0 ]]; do
 		export LATEST=1
 		shift # past argument
 		;;
+		-i|--ignore-hidden)
+		export IGNORE_HIDDEN=1
+		shift # past argument
 		-h|--hidden)
 		export UUID=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)/
 		shift # past argument
@@ -130,7 +134,11 @@ if [ -n "${SSHSHELL}" ]; then
 fi
 
 if [ -n "${LATEST}" ]; then
-    FILE=$(find "${UPLOAD_FOLDER}" -type f -printf '%T+ %p\n' | sort -r | head -n1)
+    MATCH=""
+    if [ -n "${IGNORE_HIDDEN}" ]; then
+	MATCH='.*/\..*'
+    fi
+    FILE=$(find "${UPLOAD_FOLDER}" \( ! -regex "$MATCH" \) -type f -printf '%T+ %p\n' | sort -r | head -n1)
     FILE=${FILE#* }
 fi
 if [ -z "${YES}" ]; then
